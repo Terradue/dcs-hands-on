@@ -18,7 +18,7 @@ sudo yum install -y esa-beam-4.11 ImageMagick
 cd ~
 git clone git@github.com:Terradue/dcs-handson.git
 cd dcs-testsuite
-mvn clean install -Ddcs.test.id=id -P bash
+mvn clean install -Ddcs.test.id=id
 ```
 
 where *id* is the Hands On id you want to install. For example:
