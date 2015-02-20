@@ -19,14 +19,14 @@
 		<project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<hands.on>1</hands.on>
-		<lang.extension>sh</lang.extension>
+		<language>bash</language>
 	</properties>
 	<profiles>
     		<!-- Bash profile -->
     		<profile>
       			<id>bash</id>
       			<properties>
-        			<lang.extension>sh</lang.extension>
+        			<language>bash</language>
       			</properties>
     		</profile>
   	</profiles>
@@ -103,11 +103,8 @@
 									</excludes>
 								</resource>
 								<resource>
-									<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}</directory>
+									<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}/${language}</directory>
 									<filtering>true</filtering>
-									<includes>
-										<include>**/*.${lang.extension}</include>
-									</includes>
 								</resource>
 							</resources>
 						</configuration>
@@ -178,12 +175,7 @@
 							<directory>/application</directory>
 							<sources>
 								<source>
-									<location>${basedir}/src/main/app-resources/hands-on-${hands.on}</location>
-									<includes>
-										<include>**/*.${lang.extension}</include>
-										<include>**/bin/*</include>
-										<include>**/libexec/*</include>
-									</includes>
+									<location>${basedir}/src/main/app-resources/hands-on-${hands.on}/${language}</location>
 								</source>
 							</sources>
 							<filemode>775</filemode>
