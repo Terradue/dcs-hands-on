@@ -21,7 +21,7 @@ cd dcs-hands-on
 mvn clean install -Dhands.on=-id-
 ```
 
-where *-id-* is the identified of the Hands On you want to install. For example:
+where *-id-* is the identifier of the Hands On you want to install. For example:
 
 ```
 mvn clean install -Dhands.on=1
