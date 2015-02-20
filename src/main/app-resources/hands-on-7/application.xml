@@ -3,22 +3,19 @@
   <jobTemplates>
     <!-- BEAM BandMaths operator job template  -->
     <jobTemplate id="expression">
-      <streamingExecutable>/application/expression/run.sh</streamingExecutable>
+      <streamingExecutable>/application/expression/run.${lang.extension}</streamingExecutable>
       <defaultParameters>           
         <parameter id="expression">l1_flags.INVALID?0:radiance_13>15?0:100+radiance_9-(radiance_8+(radiance_10-radiance_8)*27.524/72.570)</parameter>
-        <parameter id="startdate" title="Start date" abstract="Start date of the TOI. Used as queryable for the MERIS Level 1 catalogue" scope="runtime" type="opensearch" target="time:start">2012-04-06T10:24:29.000Z</parameter>
-        <parameter id="enddate" title="End date" abstract="End date of the TOI. Used as queryable for the MERIS Level 1 catalogue" scope="runtime" type="opensearch" target="time:end">2012-04-07</parameter>
-        <parameter id="qbbox" title="Bounding Box" abstract="The bounding box parameter" scope="runtime" type="opensearch" target="geo:box">2.99,58.45,0.53,58.26</parameter>
       </defaultParameters>
     </jobTemplate>
     <!-- BEAM Level 3 processor job template  -->
     <jobTemplate id="binning">
-      <streamingExecutable>/application/binning/run.sh</streamingExecutable>
+      <streamingExecutable>/application/binning/run.${lang.extension}</streamingExecutable>
       <defaultParameters>           
         <parameter id="cellsize">9.28</parameter>
         <parameter id="bandname">out</parameter>
         <parameter id="bitmask">l1_flags.INVALID?0:radiance_13>15?0:100+radiance_9-(radiance_8+(radiance_10-radiance_8)*27.524/72.570)</parameter>
-                    <parameter id="bbox">-180,-90,180,90</parameter>
+        <parameter id="bbox">-180,-90,180,90</parameter>
         <parameter id="algorithm">Minimum/Maximum</parameter>
         <parameter id="outputname">binned</parameter>
         <parameter id="resampling">binning</parameter>
@@ -50,12 +47,12 @@ sample8=101.80430145795337</parameter>
             </defaultJobconf>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="hands-on-${dcs.handson.id}" title="Prepare an OGC Web Processing Service" abstract="Exercise ${dcs.handson.id}, prepare an OGC Web Processing Service">           
+    <workflow id="hands-on-${dcs.handson.id}" title="Debug a multi-node workflow" abstract="Exercise ${dcs.handson.id}, debug a multi-node workflow">           
     <workflowVersion>1.0</workflowVersion>
     <node id="node_expression">       
       <job id="expression"></job>     
       <sources>
-        <source refid="cas:series">http://catalogue.terradue.int/catalogue/search/MER_RR__1P/description</source>
+        <source refid="file:urls">/application/inputs/list</source>
       </sources>
       <parameters>          
       </parameters>
