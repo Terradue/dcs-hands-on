@@ -59,7 +59,7 @@
 						<fileset>
 							<directory>/application</directory>
 							<includes>
-      								<include>*</include>
+      								<include>**/*</include>
 							</includes>
 							<excludes>
       								<exclude>**/share/**</exclude>
