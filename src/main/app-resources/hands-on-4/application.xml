@@ -5,7 +5,7 @@
       <streamingExecutable>/application/expression/run.${lang.extension}</streamingExecutable>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="hand-on-${dcs.handson.id}" title="Using a toolbox" abstract="Exercise ${dcs.handson.id}, using a toolbox">
+    <workflow id="hands-on-${dcs.handson.id}" title="Using a toolbox" abstract="Exercise ${dcs.handson.id}, using a toolbox">
     <workflowVersion>1.0</workflowVersion>
     <node id="node_expression">
       <job id="expression"/>
