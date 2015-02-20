@@ -24,10 +24,10 @@ mvn clean install -Ddcs.test.id=<id>
 where *<id>* is the Hands On id you want to install. For example:
 
 ```
-mvn clean install -Ddcs.handson.id=1
+mvn clean install -Ddcs.handson.id=1 -P bash
 ```
 
 Available Hands On
 ------------------
 
-* [1 - Hands-On Exercise 1: a basic workflow](src/main/app-resources/hands-on-1)
+* [Hands-On Exercise 1: a basic workflow](src/main/app-resources/hands-on-1)
