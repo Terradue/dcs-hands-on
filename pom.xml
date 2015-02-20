@@ -58,6 +58,9 @@
 					<filesets>
 						<fileset>
 							<directory>/application</directory>
+							<includes>
+      								<include>*</include>
+							</includes>
 							<excludes>
       								<exclude>**/share/**</exclude>
 							</excludes>
