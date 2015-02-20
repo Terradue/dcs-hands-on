@@ -15,7 +15,7 @@ sudo yum install -y esa-beam-4.11 ImageMagick
 * Run these commands in a shell:
 
 ```bash
-cd ~
+cd
 git clone https://github.com/Terradue/dcs-hands-on.git
 cd dcs-hands-on
 mvn clean install -Dhands.on=-id-
