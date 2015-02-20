@@ -47,7 +47,7 @@ sample8=101.80430145795337</parameter>
             </defaultJobconf>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="hands-on-${dcs.handson.id}" title="A multi-node workflow" abstract="Exercise ${dcs.handson.id}, a multi-node workflow">           
+    <workflow id="hands-on-${hands.on}" title="A multi-node workflow" abstract="Exercise ${hands.on}, a multi-node workflow">           
     <workflowVersion>1.0</workflowVersion>
     <node id="node_expression">       
       <job id="expression"></job>     

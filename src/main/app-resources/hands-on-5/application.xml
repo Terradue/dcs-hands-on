@@ -8,7 +8,7 @@
       </defaultParameters>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="hands-on-${dcs.handson.id}" title="Using parameters" abstract="Exercise ${dcs.handson.id}, using parameters">
+    <workflow id="hands-on-${hands.on}" title="Using parameters" abstract="Exercise ${hands.on}, using parameters">
     <workflowVersion>1.0</workflowVersion>
     <node id="node_expression">
       <job id="expression"/>

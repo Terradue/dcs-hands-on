@@ -50,7 +50,7 @@ sample8=101.80430145795337</parameter>
             </defaultJobconf>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="hands-on-${dcs.handson.id}" title="Prepare an OGC Web Processing Service" abstract="Exercise ${dcs.handson.id}, prepare an OGC Web Processing Service">           
+    <workflow id="hands-on-${hands.on}" title="Prepare an OGC Web Processing Service" abstract="Exercise ${hands.on}, prepare an OGC Web Processing Service">           
     <workflowVersion>1.0</workflowVersion>
     <node id="node_expression">       
       <job id="expression"></job>     

@@ -3,10 +3,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.terradue</groupId>
-	<artifactId>dcs-hands-on-${dcs.handson.id}</artifactId>
+	<artifactId>dcs-hands-on-${hands.on}</artifactId>
 	<packaging>rpm</packaging>
-	<name>dcs-hands-on-${dcs.handson.id}</name>
-	<description>Developer Cloud Sandbox Hands-On ${dcs.handson.id}</description>
+	<name>dcs-hands-on-${hands.on}</name>
+	<description>Developer Cloud Sandbox Hands-On ${hands.on}</description>
 	<version>1.0-SNAPSHOT</version>
 	<scm>
 		<connection>scm:git:git@github.com:Terradue/dcs-handson.git</connection>
@@ -18,7 +18,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<dcs.handson.id>1</dcs.handson.id>
+		<hands.on>1</hands.on>
 		<lang.extension>sh</lang.extension>
 	</properties>
 	<profiles>
@@ -93,14 +93,14 @@
 							<outputDirectory>/application</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${basedir}/src/main/app-resources/hands-on-${dcs.handson.id}</directory>
+									<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}</directory>
 									<filtering>true</filtering>
 									<excludes>
 										<exclude>**/run*</exclude>
 									</excludes>
 								</resource>
 								<resource>
-									<directory>${basedir}/src/main/app-resources/hands-on-${dcs.handson.id}</directory>
+									<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}</directory>
 									<filtering>true</filtering>
 									<includes>
 										<include>**/*.${lang.extension}</include>
@@ -155,8 +155,8 @@
 					<distribution>Terradue ${project.inceptionYear}</distribution>
 					<group>air</group>
 					<packager>Terradue</packager>
-					<summary>Developer Cloud Sandbox Hands-On ${dcs.handson.id}</summary>
-					<description>Developer Cloud Sandbox Hands-On ${dcs.handson.id}</description>
+					<summary>Developer Cloud Sandbox Hands-On ${hands.on}</summary>
+					<description>Developer Cloud Sandbox Hands-On ${hands.on}</description>
 					<name>${project.artifactId}</name>
 					<defaultDirmode>775</defaultDirmode>
 					<defaultFilemode>664</defaultFilemode>
@@ -169,7 +169,7 @@
 							<directory>/application</directory>
 							<sources>
 								<source>
-									<location>${basedir}/src/main/app-resources/hands-on-${dcs.handson.id}</location>
+									<location>${basedir}/src/main/app-resources/hands-on-${hands.on}</location>
 								</source>
 							</sources>
 						</mapping>
@@ -177,7 +177,7 @@
 							<directory>/application</directory>
 							<sources>
 								<source>
-									<location>${basedir}/src/main/app-resources/hands-on-${dcs.handson.id}</location>
+									<location>${basedir}/src/main/app-resources/hands-on-${hands.on}</location>
 									<includes>
 										<include>**/*.${lang.extension}</include>
 										<include>**/bin/*</include>
