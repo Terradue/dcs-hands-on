@@ -18,8 +18,18 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<dcs.handson.id></dcs.handson.id>
+		<dcs.handson.id>1</dcs.handson.id>
+		<lang.extension>sh</lang.extension>
 	</properties>
+	<profiles>
+    		<!-- Bash profile -->
+    		<profile>
+      			<id>bash</id>
+      			<properties>
+        			<lang.extension>sh</lang.extension>
+      			</properties>
+    		</profile>
+  	</profiles>
 	<repositories>
 		<repository>
 			<id>repository.terradue.com</id>
@@ -189,13 +199,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<profiles>
-    		<!-- Bash profile -->
-    		<profile>
-      			<id>bash</id>
-      			<properties>
-        			<lang.extension>sh</lang.extension>
-      			</properties>
-    		</profile>
-  	</profiles>
 </project>
