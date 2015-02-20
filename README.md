@@ -9,7 +9,7 @@ Installation
 * Install the needed packages:
 
 ```bash
-$ sudo yum install -y esa-beam-4.11 ImageMagick
+sudo yum install -y esa-beam-4.11 ImageMagick
 ```
 
 * Run these commands in a shell:
@@ -18,7 +18,7 @@ $ sudo yum install -y esa-beam-4.11 ImageMagick
 cd ~
 git clone git@github.com:Terradue/dcs-handson.git
 cd dcs-testsuite
-mvn clean install -Ddcs.test.id=<id>
+mvn clean install -Ddcs.test.id=<id> -P bash
 ```
 
 where *<id>* is the Hands On id you want to install. For example:
