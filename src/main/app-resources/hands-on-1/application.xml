@@ -5,7 +5,7 @@
       <streamingExecutable>/application/my_node/run.${lang.extension}</streamingExecutable>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="hand-on-${dcs.handson.id}" title="Basic Workflow" abstract="Exercise ${dcs.handson.id}, a basic workflow">
+    <workflow id="hands-on-${dcs.handson.id}" title="Basic Workflow" abstract="Exercise ${dcs.handson.id}, a basic workflow">
     <workflowVersion>1.0</workflowVersion>
     <node id="my_node">
       <job id="my_template"/>

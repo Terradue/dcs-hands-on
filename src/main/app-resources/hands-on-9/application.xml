@@ -3,7 +3,7 @@
   <jobTemplates>
     <!-- BEAM BandMaths operator job template  -->
     <jobTemplate id="expression">
-      <streamingExecutable>/application/expression/run.sh</streamingExecutable>
+      <streamingExecutable>/application/expression/run.${lang.extension}</streamingExecutable>
       <defaultParameters>           
         <parameter id="expression">l1_flags.INVALID?0:radiance_13>15?0:100+radiance_9-(radiance_8+(radiance_10-radiance_8)*27.524/72.570)</parameter>
         <parameter id="startdate" type="opensearch" target="time:start">2012-04-06T10:24:29.000Z</parameter>
@@ -13,7 +13,7 @@
     </jobTemplate>
     <!-- BEAM Level 3 processor job template  -->
     <jobTemplate id="binning">
-      <streamingExecutable>/application/binning/run.sh</streamingExecutable>
+      <streamingExecutable>/application/binning/run.${lang.extension}</streamingExecutable>
       <defaultParameters>           
         <parameter id="cellsize">9.28</parameter>
         <parameter id="bandname">out</parameter>
@@ -50,7 +50,7 @@ sample8=101.80430145795337</parameter>
             </defaultJobconf>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="beam_arithm" title="Exercise, using an OpenSearch catalogue" abstract="Using an OpenSearch catalogue">           
+    <workflow id="hands-on-${dcs.handson.id}" title="Exercise, using an OpenSearch catalogue" abstract="Exercise ${dcs.handson.id}, using an OpenSearch catalogue">           
     <workflowVersion>1.0</workflowVersion>
     <node id="node_expression">       
       <job id="expression"></job>     

@@ -2,10 +2,10 @@
 <application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="my_application">
   <jobTemplates>
     <jobTemplate id="my_template">
-      <streamingExecutable>/application/my_node/run.sh</streamingExecutable>
+      <streamingExecutable>/application/my_node/run.${lang.extension}</streamingExecutable>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="my_workflow" title="Staging Data" abstract="Exercise, staging data">
+    <workflow id="hand-on-${dcs.handson.id}" title="Staging Data" abstract="Exercise ${dcs.handson.id}, staging data">
     <workflowVersion>1.0</workflowVersion>
     <node id="my_node">
       <job id="my_template"/>

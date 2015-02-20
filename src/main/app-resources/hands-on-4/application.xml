@@ -2,10 +2,10 @@
 <application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="beam_arithm">
   <jobTemplates>
     <jobTemplate id="expression">
-      <streamingExecutable>/application/expression/run.sh</streamingExecutable>
+      <streamingExecutable>/application/expression/run.${lang.extension}</streamingExecutable>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="beam_arithm" title="Using a toolbox" abstract="Exercise, using a toolbox">
+    <workflow id="hand-on-${dcs.handson.id}" title="Using a toolbox" abstract="Exercise ${dcs.handson.id}, using a toolbox">
     <workflowVersion>1.0</workflowVersion>
     <node id="node_expression">
       <job id="expression"/>
