@@ -3,11 +3,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.terradue</groupId>
-	<artifactId>dcs-handson</artifactId>
+	<artifactId>hands-on-${dcs.handson.id}</artifactId>
 	<packaging>rpm</packaging>
-	<name>dcs-handson</name>
-	<description>Developer Cloud Sandbox Hands-On</description>
-	<version>1.3-SNAPSHOT</version>
+	<name>hands-on-${dcs.handson.id}</name>
+	<description>Developer Cloud Sandbox Hands-On ${dcs.handson.id}</description>
+	<version>1.0-SNAPSHOT</version>
 	<scm>
 		<connection>scm:git:git@github.com:Terradue/dcs-handson.git</connection>
 		<developerConnection>scm:git:git@github.com:Terradue/dcs-handson.git</developerConnection>
