@@ -169,7 +169,7 @@
 								<source>
 									<location>${basedir}/src/main/app-resources/hands-on-${hands.on}</location>
 									<excludes>
-										<exclude>${language}</exclude>
+										<exclude>**/${language}/*</exclude>
 									</excludes>
 								</source>
 							</sources>
