@@ -124,9 +124,7 @@
 						<phase>install</phase>
 						<configuration>
 							<target>
-								<chmod dir="/application" includes="**/run**" perm="755" />
-							</target>
-							<target>
+								<chmod dir="/application" includes="**/run*" perm="755" />
 								<chmod dir="/application" includes="application.xml" perm="664" />
 							</target>
 						</configuration>
