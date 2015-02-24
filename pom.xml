@@ -50,6 +50,21 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<build>
+		<resources>
+                        <resource>
+                        	<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}</directory>
+                                <filtering>true</filtering>
+                                <excludes>
+                                	<exclude>**/run*</exclude>
+                                </excludes>
+				<targetPath>${project.build.directory}/resources/</targetPath>
+                        </resource>
+                        <resource>
+                        	<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}/${language}</directory>
+                                <filtering>true</filtering>
+				<targetPath>${project.build.directory}/resources/</targetPath>
+                        </resource>
+                </resources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-clean-plugin</artifactId>
@@ -96,15 +111,7 @@
 							<outputDirectory>/application</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}</directory>
-									<filtering>true</filtering>
-									<excludes>
-										<exclude>**/run*</exclude>
-									</excludes>
-								</resource>
-								<resource>
-									<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}/${language}</directory>
-									<filtering>true</filtering>
+									<directory>${project.build.directory}/resources/</directory>
 								</resource>
 							</resources>
 						</configuration>
@@ -167,10 +174,7 @@
 							<directory>/application</directory>
 							<sources>
 								<source>
-									<location>${basedir}/src/main/app-resources/hands-on-${hands.on}</location>
-									<excludes>
-										<exclude>**/${language}/*</exclude>
-									</excludes>
+									<location>${project.build.directory}/resources</location>
 								</source>
 							</sources>
 						</mapping>
@@ -178,7 +182,10 @@
 							<directory>/application</directory>
 							<sources>
 								<source>
-									<location>${basedir}/src/main/app-resources/hands-on-${hands.on}/${language}</location>
+									<location>${project.build.directory}/resources</location>
+									<includes>
+										<include>**/run*</include>
+									</includes>
 								</source>
 							</sources>
 							<filemode>775</filemode>
