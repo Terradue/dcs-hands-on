@@ -3,14 +3,14 @@
   <jobTemplates>
     <!-- BEAM BandMaths operator job template  -->
     <jobTemplate id="expression">
-      <streamingExecutable>/application/expression/run.${lang.extension}</streamingExecutable>
+      <streamingExecutable>/application/expression/run</streamingExecutable>
       <defaultParameters>           
         <parameter id="expression">l1_flags.INVALID?0:radiance_13>15?0:100+radiance_9-(radiance_8+(radiance_10-radiance_8)*27.524/72.570)</parameter>
       </defaultParameters>
     </jobTemplate>
     <!-- BEAM Level 3 processor job template  -->
     <jobTemplate id="binning">
-      <streamingExecutable>/application/binning/run.${lang.extension}</streamingExecutable>
+      <streamingExecutable>/application/binning/run</streamingExecutable>
       <defaultParameters>           
         <parameter id="cellsize">9.28</parameter>
         <parameter id="bandname">out</parameter>

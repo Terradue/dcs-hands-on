@@ -7,7 +7,7 @@
 	<packaging>rpm</packaging>
 	<name>dcs-hands-on-${hands.on}</name>
 	<description>Developer Cloud Sandbox Hands-On ${hands.on}</description>
-	<version>1.0</version>
+	<version>1.0.1</version>
 	<scm>
 		<connection>scm:git:git@github.com:Terradue/dcs-handson.git</connection>
 		<developerConnection>scm:git:git@github.com:Terradue/dcs-handson.git</developerConnection>
@@ -19,14 +19,14 @@
 		<project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<hands.on>1</hands.on>
-		<lang.extension>sh</lang.extension>
+		<language>bash</language>
 	</properties>
 	<profiles>
     		<!-- Bash profile -->
     		<profile>
       			<id>bash</id>
       			<properties>
-        			<lang.extension>sh</lang.extension>
+        			<language>bash</language>
       			</properties>
     		</profile>
   	</profiles>
@@ -50,6 +50,21 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<build>
+		<resources>
+                        <resource>
+                        	<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}</directory>
+                                <filtering>true</filtering>
+                                <excludes>
+                                	<exclude>**/run*</exclude>
+                                </excludes>
+				<targetPath>${project.build.directory}/resources/</targetPath>
+                        </resource>
+                        <resource>
+                        	<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}/${language}</directory>
+                                <filtering>true</filtering>
+				<targetPath>${project.build.directory}/resources/</targetPath>
+                        </resource>
+                </resources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-clean-plugin</artifactId>
@@ -59,7 +74,7 @@
 						<fileset>
 							<directory>/application</directory>
 							<includes>
-      								<include>*</include>
+      								<include>**/*</include>
 							</includes>
 							<excludes>
       								<exclude>**/share/**</exclude>
@@ -96,18 +111,7 @@
 							<outputDirectory>/application</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}</directory>
-									<filtering>true</filtering>
-									<excludes>
-										<exclude>**/run*</exclude>
-									</excludes>
-								</resource>
-								<resource>
-									<directory>${basedir}/src/main/app-resources/hands-on-${hands.on}</directory>
-									<filtering>true</filtering>
-									<includes>
-										<include>**/*.${lang.extension}</include>
-									</includes>
+									<directory>${project.build.directory}/resources/</directory>
 								</resource>
 							</resources>
 						</configuration>
@@ -170,7 +174,7 @@
 							<directory>/application</directory>
 							<sources>
 								<source>
-									<location>${basedir}/src/main/app-resources/hands-on-${hands.on}</location>
+									<location>${project.build.directory}/resources</location>
 								</source>
 							</sources>
 						</mapping>
@@ -178,11 +182,9 @@
 							<directory>/application</directory>
 							<sources>
 								<source>
-									<location>${basedir}/src/main/app-resources/hands-on-${hands.on}</location>
+									<location>${project.build.directory}/resources</location>
 									<includes>
-										<include>**/*.${lang.extension}</include>
-										<include>**/bin/*</include>
-										<include>**/libexec/*</include>
+										<include>**/run*</include>
 									</includes>
 								</source>
 							</sources>
