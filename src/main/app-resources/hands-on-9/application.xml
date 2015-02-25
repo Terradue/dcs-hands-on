@@ -50,7 +50,7 @@ sample8=101.80430145795337</parameter>
             </defaultJobconf>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="hands-on-${hands.on}" title="Exercise, using an OpenSearch catalogue" abstract="Exercise ${hands.on}, using an OpenSearch catalogue">           
+    <workflow id="hands-on-9" title="Exercise, using an OpenSearch catalogue" abstract="Exercise 9, using an OpenSearch catalogue">           
     <workflowVersion>1.0</workflowVersion>
     <node id="node_expression">       
       <job id="expression"></job>     

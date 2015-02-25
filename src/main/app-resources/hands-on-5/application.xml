@@ -8,7 +8,7 @@
       </defaultParameters>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="hands-on-${hands.on}" title="Using parameters" abstract="Exercise ${hands.on}, using parameters">
+    <workflow id="hands-on-5" title="Using parameters" abstract="Exercise 5, using parameters">
     <workflowVersion>1.0</workflowVersion>
     <node id="node_expression">
       <job id="expression"/>
