@@ -5,7 +5,7 @@
       <streamingExecutable>/application/my_node/run</streamingExecutable>
     </jobTemplate>
   </jobTemplates>
-    <workflow id="hands-on-${hands.on}" title="Staging Data" abstract="Exercise ${hands.on}, staging data">
+    <workflow id="hands-on-3" title="Staging Data" abstract="Exercise 3, staging data">
     <workflowVersion>1.0</workflowVersion>
     <node id="my_node">
       <job id="my_template"/>
