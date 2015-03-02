@@ -29,6 +29,13 @@
         			<language>bash</language>
       			</properties>
     		</profile>
+    		<!-- Python profile -->
+                <profile>
+                	<id>python</id>
+                        <properties>
+                        	<language>python</language>
+                        </properties>
+                </profile>
   	</profiles>
 	<repositories>
 		<repository>
@@ -195,8 +202,7 @@
 						<provide>${project.artifactId}</provide>
 					</provides>
 					<requires>
-						<require>esa-beam-4.11</require>
-						<require>ImageMagick</require>
+						<require>beam-5.0</require>
 					</requires>
 				</configuration>
 			</plugin>

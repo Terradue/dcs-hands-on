@@ -1,0 +1,138 @@
+#!/opt/anaconda/bin/python
+
+import sys
+import atexit
+import os
+from lxml import etree
+from subprocess import call
+import tarfile
+
+# import the ciop functions (e.g. copy, log)
+sys.path.append('/opt/anaconda/bin/')
+import cioppy
+ciop = cioppy.Cioppy()
+ 
+
+# define the exit codes
+SUCCESS = 0
+ERR_BEAM = 2
+ERR_NOEXPR = 3
+ERR_NOINPUT=4
+
+# add a trap to exit gracefully
+def clean_exit(exit_code):
+    log_level = 'INFO'
+    if exit_code != SUCCESS:
+        log_level = 'ERROR'  
+   
+    msg = {SUCCESS: 'Processing successfully concluded',
+           ERR_BEAM: 'Beam_expr failed to process product',
+           ERR_NOEXPR: 'No expression provided',
+           ERR_NOINPUT: 'No input provided'}
+ 
+    ciop.log(log_level, msg[exit_code])  
+    
+def main():
+    os.environ['BEAM_HOME'] = os.path.join(ciop.application_dir, '/opt/beam-5.0')
+    os.environ['PATH'] = os.path.join(os.environ['BEAM_HOME'], 'bin:' + os.environ['PATH'])
+
+    # create the output folder to store the output products and export it
+    output_path = os.path.join(ciop.tmp_dir, 'output')
+    os.makedirs(output_path)
+
+    # band arithmetic expression for ESA BEAM Toolbox
+    expression = ciop.getparam('expression') 
+
+    # log the value, it helps debugging. 
+    # the log entry is available in the process stderr 
+    ciop.log('DEBUG', 'The expression used is: ' + expression)
+
+    # Loops over all the inputs
+    for inputfile in sys.stdin:
+        # report activity in log
+        ciop.log('INFO', 'The input file is: ' + inputfile)
+
+        # retrieve the MER_RR__1P product to the local temporary folder TMPDIR provided by the framework (this folder is only used by this process)
+        # the ciop.copy function will use one of online resource available in the metadata to copy it to the TMPDIR folder
+        # the funtion returns the local path so the variable retrieved contains the local path to the MERIS product
+        retrieved = ciop.copy(inputfile, ciop.tmp_dir)
+        outputname = os.path.basename(retrieved)
+
+        ciop.log('INFO', 'Retrieved ' + os.path.basename(retrieved))
+  
+        assert(retrieved)
+
+        request_path = os.path.join(ciop.tmp_dir, 'request.xml')
+        requestTemplate = """<?xml version="1.0" encoding="ISO-8859-1"?>
+        <graph>
+          <version>1.0</version>
+          <node id="1">
+              <operator>Read</operator>
+              <parameters>
+                <file>{retrieved}</file>
+              </parameters>
+          </node>
+          <node id="2">
+            <operator>BandMaths</operator>
+            <sources>
+              <source>1</source>
+            </sources>
+            <parameters>
+              <targetBands>
+                <targetBand>
+                  <name>out</name>
+                  <expression>{expression}</expression>
+                  <description>Processed Band</description>
+                  <type>float32</type>
+                </targetBand>
+              </targetBands>
+            </parameters>
+          </node>
+          <node id="write">
+            <operator>Write</operator>
+            <sources>
+              <source>2</source>
+            </sources>
+            <parameters>
+              <file>{output}</file>
+            </parameters>
+          </node>
+        </graph>"""
+
+        context = {
+            "retrieved": retrieved,
+            "expression": expression,
+            "output": os.path.join(output_path, outputname + '.dim')
+        }
+
+        # prepare the BEAM request
+        with open(request_path, 'w') as request_xml:
+            request_xml.write(requestTemplate.format(**context))
+
+        # invoke the ESA BEAM toolbox
+        res = call('gpt.sh ' + request_path, shell=True)
+        assert(res == 0)
+ 
+        # compress the ESA BEAM results
+        os.chdir(output_path)
+        with tarfile.open(os.path.join(output_path, outputname + '.tar.gz'), "w:gz") as tar:
+            tar.add(outputname + '.dim')
+            tar.add(outputname + '.data')
+            tar.close()
+
+        os.chdir(ciop.tmp_dir)
+       
+        # publish the compressed results
+        ciop.log('INFO', 'Publishing ' + outputname + '.tar.gz') 
+        ciop.publish(os.path.join(output_path, outputname + '.tar.gz'))        
+
+try:
+    main()
+except SystemExit as e:
+    if e.args[0]:
+         clean_exit(e.args[0])
+    raise
+else:
+    atexit.register(clean_exit, 0)
+
+
