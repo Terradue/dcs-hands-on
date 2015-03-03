@@ -1,0 +1,40 @@
+#!/opt/anaconda/bin/python
+
+import sys
+import atexit
+
+# import the ciop functions (e.g. copy, log)
+import cioppy
+ciop = cioppy.Cioppy()
+
+# define the exit codes
+SUCCESS = 0
+ERR_BEAM = 2
+ERR_NOEXPR = 3
+
+# add a trap to exit gracefully
+def clean_exit(exit_code):
+    log_level = 'INFO'
+    if exit_code == SUCCESS:
+        log_level = 'ERROR'  
+   
+    msg = { SUCCESS: 'Processing successfully concluded',
+           ERR_BEAM: 'Beam_expr failed to process product',
+           ERR_NOEXPR: 'No expression provided' }
+ 
+    ciop.log(log_level, msg[exit_code])  
+    
+def main():
+    # Loops over all the inputs
+    for inputfile in sys.stdin:
+        # report activity in log
+        ciop.log('INFO', 'The input file is: ' + inputfile)
+
+try:
+    main()
+except SystemExit as e:
+    if e.args[0]:
+         clean_exit(e.args[0])
+    raise
+else:
+    atexit.register(clean_exit, 0)

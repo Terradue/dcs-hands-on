@@ -7,7 +7,7 @@
 	<packaging>rpm</packaging>
 	<name>dcs-hands-on-${hands.on}</name>
 	<description>Developer Cloud Sandbox Hands-On ${hands.on}</description>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 	<scm>
 		<connection>scm:git:git@github.com:Terradue/dcs-handson.git</connection>
 		<developerConnection>scm:git:git@github.com:Terradue/dcs-handson.git</developerConnection>
@@ -29,6 +29,13 @@
         			<language>bash</language>
       			</properties>
     		</profile>
+    		<!-- Python profile -->
+                <profile>
+                	<id>python</id>
+                        <properties>
+                        	<language>python</language>
+                        </properties>
+                </profile>
   	</profiles>
 	<repositories>
 		<repository>
@@ -195,8 +202,7 @@
 						<provide>${project.artifactId}</provide>
 					</provides>
 					<requires>
-						<require>esa-beam-4.11</require>
-						<require>ImageMagick</require>
+						<require>beam-5.0</require>
 					</requires>
 				</configuration>
 			</plugin>

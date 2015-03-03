@@ -1,0 +1,13 @@
+#!/opt/anaconda/bin/python
+import sys
+
+# import the ciop functions (e.g. copy, log)
+import cioppy 
+ciop = cioppy.Cioppy()
+
+# Loops over all the inputs
+for inputfile in sys.stdin:
+    # report activity in log
+    ciop.log('INFO', 'The input file is: ' + inputfile)
+
+sys.exit(0)

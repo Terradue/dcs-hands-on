@@ -4,7 +4,7 @@
 source ${ciop_job_include}
 
 # set the environment variables to use ESA BEAM toolbox
-export BEAM_HOME=${_CIOP_APPLICATION_PATH}/share/beam-4.11
+export BEAM_HOME=/opt/beam-5.0
 export PATH=${BEAM_HOME}/bin:${PATH}
 
 # define the exit codes

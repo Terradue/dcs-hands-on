@@ -3,7 +3,7 @@
 # source the ciop functions (e.g. ciop-log)
 source ${ciop_job_include}
 
-export BEAM_HOME=${_CIOP_APPLICATION_PATH}/share/beam-4.11
+export BEAM_HOME=/opt/beam-5.0
 export PATH=${BEAM_HOME}/bin:${PATH}
 
 # define the exit codes
@@ -21,192 +21,126 @@ ERR_PCONVERT=13
 # add a trap to exit gracefully
 function cleanExit ()
 {
-    local retval=$?
-    local msg=""
-
-    case "${retval}" in
-        ${SUCCESS})        msg="Processing successfully concluded";;
-        ${ERR_NOPARAMS})   msg="Output format not defined";;
-        ${ERR_GDAL})       msg="Graph processing of job ${JOBNAME} failed (exit code ${res})";;
-        ${ERR_NO_PUBLISH}) msg="Error while publishing results";;
-        ${ERR_INPUT_COPY}) msg="Error while retrieving input";;
-        ${ERR_INPUT_TAR})  msg="Error while untarring input";;
-        ${ERR_PCONVERT})   msg="Error while executing pconvert";;
-        ${ERR_JPEGTMP})    msg="Error while creating jpeg";;
-        ${ERR_BROWSE})     msg="Error while creating browse";;
-        *)                 msg="Unknown error";;
-    esac
-   
-    [ ${retval} -ne 0 ] && ciop-log "ERROR" "Error ${retval} - ${msg}, processing aborted" || ciop-log "INFO" "${msg}"
-    exit ${retval}
+   local retval=$?
+   local msg=""
+   case "${retval}" in
+    ${SUCCESS})      msg="Processing successfully concluded";;
+    ${ERR_BINNING})  msg="Error while executing gpt";;
+    ${ERR_PCONVERT}) msg="Error while executing pconvert";;
+    ${ERR_NOPARAMS})   msg="Output format not defined";;
+    ${ERR_GDAL})       msg="Graph processing of job ${JOBNAME} failed (exit code ${res})";;
+    ${ERR_NO_PUBLISH}) msg="Error while publishing results";;
+    ${ERR_INPUT_COPY}) msg="Error while retrieving input";;
+    ${ERR_INPUT_TAR})  msg="Error while untarring input";;
+    ${ERR_JPEGTMP})    msg="Error while creating jpeg";;
+    ${ERR_BROWSE})     msg="Error while creating browse";;
+     *)             msg="Unknown error";;
+   esac
+   [ "$retval" != "0" ] && ciop-log "ERROR" "Error ${retval} - ${msg}, processing aborted" || ciop-log "INFO" "${msg}"
+   exit ${retval}
 }
 trap cleanExit EXIT
 
-function get_xml_val() {
-    cat $1 | grep $2 | cut -d '>' -f 2 | cut -d '<' -f 1 
-}
+# retrieve the parameters value from workflow or job default value
+bandname="$( ciop-getparam bandname )"
+bitmask="$( ciop-getparam bitmask )"
+bbox="$( ciop-getparam bbox )"
+algorithm="$( ciop-getparam algorithm )"
+outputname="$( ciop-getparam outputname )"
 
-function get_text_val() {
-    cat $1 | grep $2 | cut -d '"' -f 2 | cut -d '"' -f 1
-}
+# split the bounding value
+xmin=$( echo ${bbox} | cut -d "," -f 1 )
+ymin=$( echo ${bbox} | cut -d "," -f 2 )
+xmax=$( echo ${bbox} | cut -d "," -f 3 )
+ymax=$( echo ${bbox} | cut -d "," -f 4 )
 
-function get_data() {
-    local url
-    url="$1"
+binning_file=${TMPDIR}/binning_request.xml
 
-    prod=$( echo ${url} | ciop-copy -U -o ${TMPDIR}/input - )
-    # checking if the copy was successfull
-    [ $? -eq 0 ] && [ -n "${prod}" ] || return ${ERR_INPUT_COPY}
-    
-    cd ${TMPDIR}/input
-    tar xfz $( basename ${prod} ) &> /dev/null
+# create a folder for the input products (results of node_expression)
+mkdir -p ${TMPDIR}/input
 
-    # let's check the return value
-    [ $? -eq 0 ] || return ${ERR_INPUT_TAR}
-    cd -
-}
+# create a folder based on the outputname
+mkdir ${TMPDIR}/${outputname}
 
-function create_request_xml(){
-    local l3db
-    local request_xml_file
-
-    l3db="$1"
-    request_xml_file="$2"
-
-    # retrieve the parameters value from workflow or job default value
-    cellsize="$( ciop-getparam cellsize )"
-    bandname="$( ciop-getparam bandname )"
-    bitmask="$( ciop-getparam bitmask )"
-    bbox="$( ciop-getparam bbox )"
-    algorithm="$( ciop-getparam algorithm )"
-    outputname="$( ciop-getparam outputname )"
-    compress="$( ciop-getparam compress )"
-    band="$( ciop-getparam band )"
-    tailor="$( ciop-getparam tailor )"
-
-    xmin=$( echo ${bbox} | cut -d "," -f 1 )
-    ymin=$( echo ${bbox} | cut -d "," -f 2 )
-    xmax=$( echo ${bbox} | cut -d "," -f 3 )
-    ymax=$( echo ${bbox} | cut -d "," -f 4 )
-
-    # first part of request file
-    cat > ${request_xml_file} << EOF
-<?xml version="1.0" encoding="ISO-8859-1"?>
-  <RequestList>
-    <Request type="BINNING">
-      <Parameter name="process_type" value="init" />
-      <Parameter name="database" value="${l3db}" />
-      <Parameter name="lat_min" value="${ymin}" />
-      <Parameter name="lat_max" value="${ymax}" />
-      <Parameter name="lon_min" value="${xmin}" />
-      <Parameter name="lon_max" value="${xmax}" />
-      <Parameter name="log_prefix" value="l3" />
-      <Parameter name="log_to_output" value="false" />
-      <Parameter name="resampling_type" value="binning" />
-      <Parameter name="grid_cell_size" value="${cellsize}" />
-      <Parameter name="band_name.0" value="${bandname}" />
-      <Parameter name="bitmask.0" value="${bitmask}" />
-      <Parameter name="binning_algorithm.0" value="${algorithm}" />
-      <Parameter name="weight_coefficient.0" value="1" />
-    </Request>
-    <Request type="BINNING">
-      <Parameter name="process_type" value="update" />
-      <Parameter name="database" value="${l3db}" />
-      <Parameter name="log_prefix" value="l3" />
-      <Parameter name="log_to_output" value="false" />
-EOF
-
-    for myfile in $( find ${TMPDIR}/input -type f -name "*.dim" )
-    do
-        echo "      <InputProduct URL=\"file://${myfile}\" /> " >> ${request_xml_file}
-    done
-
-    cat >> ${request_xml_file} << EOF
-    </Request>
-    <Request type="BINNING">
-      <Parameter name="process_type" value="finalize" />
-      <Parameter name="database" value="${l3db}" />
-      <Parameter name="delete_db" value="true" />
-      <Parameter name="log_prefix" value="l3" />
-      <Parameter name="log_to_output" value="false" />
-      <Parameter name="tailor" value="${tailor}" />
-      <OutputProduct URL="file:${TMPDIR}/output/${outputname}.dim" format="BEAM-DIMAP" />
-    </Request>
-</RequestList>
-EOF
-}
-
-function main(){
-    # main function
-
-    l3db_file=${TMPDIR}/l3_database.bindb
-    request_xml_file=${TMPDIR}/binning_request.xml
-
-    # creates the request xml
-    create_request_xml "${l3db_file}" "${request_xml_file}"
-
-    # starting binning
-    binning.sh ${request_xml_file}
-    [ $? -eq 0 ] || return ${ERR_BINNING}
-
-    ciop-log "INFO" "Publishing binned DIMAP product"
-    ciop-publish -m ${TMPDIR}/output/${outputname}.dim
-    [ $? -eq 0 ] || return ${ERR_NO_PUBLISH}
-
-    ciop-publish -m ${TMPDIR}/output/${outputname}.data
-    [ $? -eq 0 ] || return ${ERR_NO_PUBLISH}
-
-    cat > ${TMPDIR}/palette.cpd << EOF
-$( ciop-getparam palette )
-EOF
-
-    ciop-log "INFO" "Generating image files"
-    pconvert.sh -f png -b ${band} ${TMPDIR}/output/${outputname}.dim -c ${TMPDIR}/palette.cpd -o ${TMPDIR}/output &> /dev/null
-    [ $? -eq 0 ] || return ${ERR_PCONVERT}
-
-    ciop-publish -m ${TMPDIR}/output/${outputname}.png &> /dev/null
-    [ $? -eq 0 ] || return ${ERR_NO_PUBLISH}
- 
-    pconvert.sh -f tif -b ${band} ${TMPDIR}/output/${outputname}.dim -c  ${TMPDIR}/palette.cpd -o ${TMPDIR}/output &> /dev/null
-    [ $? -eq 0 ] || return ${ERR_PCONVERT}
-    mv ${TMPDIR}/output/${outputname}.tif ${TMPDIR}/output/${outputname}.rgb.tif
-    ciop-publish -m ${TMPDIR}/output/${outputname}.rgb.tif
-    [ $? -eq 0 ] || return ${ERR_NO_PUBLISH}
-  
-    pconvert.sh -f tif -b ${band} ${TMPDIR}/output/${outputname}.dim -o ${TMPDIR}/output &> /dev/null
-    [ $? -eq 0 ] || return ${ERR_PCONVERT}
-    ciop-publish -m ${TMPDIR}/output/${outputname}.tif
-    [ $? -eq 0 ] || return ${ERR_NO_PUBLISH}
-
-    dim=${TMPDIR}/output/${outputname}.dim
-
-    width=$( get_xml_val ${dim} NCOLS )
-    height=$( get_xml_val ${dim} NROWS )
-    minx=$( get_text_val ${dim} EASTING )
-    maxy=$( get_text_val ${dim} NORTHING )
-    resx=$( get_text_val ${dim} PIXELSIZE_X )
-    resy=$( get_text_val ${dim} PIXELSIZE_Y )
-    maxx=$( echo "$minx + $width * $resx" | bc -l )
-    miny=$( echo "$maxy - $height * $resy" | bc -l )
-
-    convert -cache 1024 -size ${width}x${height} -depth 8 -interlace Partition ${TMPDIR}/output/${outputname}.png ${TMPDIR}/tmp.jpeg &> /dev/null
-    [ $? -eq 0 ] || return ${ERR_JPEGTMP}
-  
-    ciop-log "INFO" "Generating the browse"
-    convert -cache 1024 -size 150x150 -depth 8 -interlace Partition ${TMPDIR}/tmp.jpeg ${TMPDIR}/output/${outputname}_browse.jpg &> /dev/null
-    [ $? -eq 0 ] || return ${ERR_BROWSE}
-    ciop-publish -m ${TMPDIR}/output/${outputname}_browse.jpg
-    [ $? -eq 0 ] || return ${ERR_NO_PUBLISH}
-
-    return ${SUCCESS}
-}
-
-mkdir -p $TMPDIR/input
-mkdir -p $TMPDIR/output
-
-while read product
+while read list
 do
-    get_data "${product}"
+  prod=$( echo $list | ciop-copy -U -o ${TMPDIR}/input - )
+  ciop-log "DEBUG" "Retrieved `basename ${list}`" 
+  cd $TMPDIR/input
+  tar xfz `basename ${list}`
+  cd - &> /dev/null
 done
 
-main || exit $?
+# create the Binning graph
+cat > ${binning_file} << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<graph id="someGraphId">
+  <version>1.0</version>
+    <node id="someNodeId">
+        <operator>Binning</operator>
+    <parameters>
+        <sourceProductPaths>$( find ${TMPDIR}/input -name "*.dim" | tr "\n" "," )</sourceProductPaths>
+        <region class="com.vividsolutions.jts.geom.Polygon">POLYGON ((${xmin} ${ymin}, ${xmax} ${ymin}, ${xmax} ${ymax}, ${xmin} ${ymax}, ${xmin} ${ymin}))</region>
+        <timeFilterMethod>NONE</timeFilterMethod>
+        <numRows>2160</numRows>
+        <superSampling>1</superSampling>
+        <maskExpr></maskExpr>
+        <variables/>
+        <aggregators>
+            <aggregator>
+                <type>$algorithm</type>
+                <varName>$bandname</varName>
+                <targetName></targetName>
+            </aggregator>
+        </aggregators>
+        <outputFile>${TMPDIR}/${outputname}/${outputname}.dim</outputFile>
+    </parameters>
+  </node>
+</graph>
+EOF
+
+# invoke BEAM gpt with the created graph
+ciop-log "INFO" "Binning products"
+gpt.sh ${binning_file} 
+[ "$?" == "0" ] || exit ${ERR_BINNING}
+
+ciop-log "INFO" "Compressing and publishing binned DIMAP product"
+cd ${TMPDIR}/${outputname}
+tar -czf ${outputname}.tgz ${outputname}.*
+# stage-out the binned product
+cd - &> /dev/null
+ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.tgz
+ciop-log "INFO" "Generating image files"
+
+# stage-out the binned product
+ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.tgz
+
+ciop-log "INFO" "Generating image files"
+
+cat > ${TMPDIR}/palette.cpd << EOF
+"$( ciop-getparam palette )"
+EOF
+
+# png file
+pconvert.sh -f png -b 3 ${TMPDIR}/${outputname}/${outputname}.dim -c ${TMPDIR}/palette.cpd -o ${TMPDIR}/${outputname} &> /dev/null
+[ "$?" == "0" ] || exit $ERR_PCONVERT
+ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.png &> /dev/null
+
+# rgb tif file
+pconvert.sh -f tif -b 3 ${TMPDIR}/${outputname}/${outputname}.dim -c ${TMPDIR}/palette.cpd -o ${TMPDIR}/${outputname} &> /dev/null
+[ "$?" == "0" ] || exit $ERR_PCONVERT
+mv ${TMPDIR}/${outputname}/${outputname}.tif ${TMPDIR}/${outputname}/${outputname}_rgb.tif
+ciop-publish -m ${TMPDIR}/${outputname}/${outputname}_rgb.tif &> /dev/null
+
+# tif file
+pconvert.sh -f tif -b 3 ${TMPDIR}/${outputname}/${outputname}.dim -o ${TMPDIR}/${outputname} &> /dev/null
+[ "$?" == "0" ] || exit $ERR_PCONVERT
+ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.tif &> /dev/null
+
+
+
+# clean-up for next list
+rm -fr ${TMPDIR}/input/*
+
+rm -fr ${TMPDIR}/${outputname}
+exit 0

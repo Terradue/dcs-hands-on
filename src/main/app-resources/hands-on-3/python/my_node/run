@@ -1,0 +1,56 @@
+#!/opt/anaconda/bin/python
+
+import sys
+import atexit
+import os
+
+# import the ciop functions (e.g. copy, log)
+
+import cioppy
+ciop = cioppy.Cioppy()
+
+# define the exit codes
+SUCCESS = 0
+ERR_BEAM = 2
+ERR_NOEXPR = 3
+
+# add a trap to exit gracefully
+def clean_exit(exit_code):
+    log_level = 'INFO'
+    if exit_code != SUCCESS:
+        log_level = 'ERROR'  
+   
+    msg = { SUCCESS: 'Processing successfully concluded',
+           ERR_BEAM: 'Beam_expr failed to process product',
+           ERR_NOEXPR: 'No expression provided' }
+ 
+    ciop.log(log_level, msg[exit_code])  
+    
+def main():
+    # Loops over all the inputs
+    for inputfile in sys.stdin:
+        # report activity in log
+        ciop.log('INFO', 'The input file is: ' + inputfile)
+
+        # retrieve the MER_RR__1P product to the local temporary folder TMPDIR provided by the framework (this folder is only used by this process)
+        # the ciop.copy function will use one of online resource available in the metadata to copy it to the TMPDIR folder
+        # the funtion returns the local path so the variable retrieved contains the local path to the MERIS product
+        retrieved = ciop.copy(inputfile, ciop.tmp_dir)
+        ciop.log('INFO', 'Retrieved ' + os.path.basename(retrieved))
+  
+        assert(retrieved) 
+
+        # publish the result 
+        # ciop.publish copies the data retrieved  to the distributed filesystem (HDFS)
+        ciop.log('INFO', 'Publishing result')
+        published = ciop.publish(retrieved)
+
+        ciop.log('INFO', 'Published ' + published)
+try:
+    main()
+except SystemExit as e:
+    if e.args[0]:
+         clean_exit(e.args[0])
+    raise
+else:
+    atexit.register(clean_exit, 0)

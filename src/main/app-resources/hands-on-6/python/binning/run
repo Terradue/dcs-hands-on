@@ -1,0 +1,183 @@
+#!/opt/anaconda/bin/python
+
+import sys
+import atexit
+import os
+import os.path
+from lxml import etree
+from subprocess import call
+import tarfile
+
+# import the ciop functions (e.g. copy, log)
+import cioppy 
+
+ciop = cioppy.Cioppy()
+
+# define the exit codes
+SUCCESS = 0
+ERR_NOINPUT = 1
+ERR_BINNING = 2
+ERR_NOPARAMS = 5
+ERR_JPEGTMP = 7
+ERR_BROWSE = 9
+
+# add a trap to exit gracefully
+def clean_exit(exit_code):
+    log_level = 'INFO'
+    if exit_code != SUCCESS:
+        log_level = 'ERROR'  
+   
+    msg = { SUCCESS: 'Processing successfully concluded',
+           ERR_NOINPUT: 'Beam_expr failed to process product',
+           ERR_BINNING: 'No expression provided',
+           ERR_NOPARAMS: 'No input provided' }
+ 
+    ciop.log(log_level, msg[exit_code])  
+    
+def main():
+    os.environ['BEAM_HOME'] = os.path.join(ciop.application_dir, '/opt/beam-5.0')
+    os.environ['PATH'] = os.path.join(os.environ['BEAM_HOME'], 'bin:' + os.environ['PATH'])
+
+    # create the output folder to store the output products and export it
+    output_path = os.path.join(ciop.tmp_dir, 'output')
+    input_path = os.path.join(ciop.tmp_dir, 'input')
+    os.makedirs(output_path)
+    os.makedirs(input_path)
+
+    # retrieve the parameters value from workflow or job default value
+    cellsize = ciop.getparam('cellsize')
+    bandname = ciop.getparam('bandname')
+    bbox = ciop.getparam('bbox')
+    algorithm = ciop.getparam('algorithm')
+    outputname = ciop.getparam('outputname')
+    band = ciop.getparam('band')
+    tailor = ciop.getparam('tailor')
+    bitmask = ciop.getparam('bitmask')
+
+    xmin = bbox.split(',')[0]
+    ymin = bbox.split(',')[1]
+    xmax = bbox.split(',')[2]
+    ymax = bbox.split(',')[3]
+
+    request_path = os.path.join(ciop.tmp_dir, 'binning_request.xml')
+
+    products_list = []
+    os.chdir(input_path)
+    # Loops over all the inputs
+    for inputfile in sys.stdin:
+        # report activity in log
+        ciop.log('INFO', 'The input file is: ' + inputfile)
+
+        prod = ciop.copy(inputfile, input_path, False)
+   
+        ciop.log('INFO', 'Retrieved ' + os.path.basename(prod))
+    
+        tar = tarfile.open(prod, 'r')
+        ciop.log('DEBUG', 'extracting' + prod)
+        tar.extractall()
+        tar.close()
+
+        products_list.append(prod.replace('tar.gz', 'dim') + ',')
+        
+    products = ",".join(products_list) 
+
+    os.chdir(os.environ['TMPDIR'])
+    ciop.log('DEBUG', os.listdir(input_path))
+
+    request_path = os.path.join(ciop.tmp_dir, 'request.xml')
+    requestTemplate = """<?xml version="1.0" encoding="ISO-8859-1"?>
+<graph id="someGraphId">
+  <version>1.0</version>
+    <node id="someNodeId">
+        <operator>Binning</operator>
+    <parameters>
+        <sourceProductPaths>{sources}</sourceProductPaths>
+        <region class="com.vividsolutions.jts.geom.Polygon">POLYGON (({xmin} {ymin}, {xmax} {ymin}, {xmax} {ymax}, {xmin} {ymax}, {xmin} {ymin}))</region>
+        <timeFilterMethod>NONE</timeFilterMethod>
+        <numRows>2160</numRows>
+        <superSampling>1</superSampling>
+        <maskExpr>{bitmask}</maskExpr>
+        <variables/>
+        <aggregators>
+            <aggregator>
+                <type>{algorithm}</type>
+                <varName>{bandname}</varName>
+                <targetName></targetName>
+            </aggregator>
+        </aggregators>
+        <outputFile>{output}</outputFile>
+    </parameters>
+  </node>
+</graph>"""
+
+    context = {
+        "xmin": xmin,
+        "ymin": ymin,
+        "xmax": xmax,
+        "ymax": ymax,
+        "bitmask": '',
+        "algorithm": algorithm,
+        "bandname": bandname,
+        "sources": products,
+        "output": os.path.join(output_path, outputname + '.dim')
+    }
+     
+    with open(request_path, 'w') as request_xml:
+        request_xml.write(requestTemplate.format(**context))
+
+    res = call('gpt.sh ' + request_path, shell=True)
+    assert(res == 0)    
+               
+    # compressing and publishing data
+    os.chdir(output_path)
+    
+    with tarfile.open(outputname + '.tar.gz', "w:gz") as tar:
+        tar.add(outputname + '.dim')
+        tar.add(outputname + '.data')
+    
+    # publish the compressed results
+    ciop.log('INFO', 'Publishing ' + outputname + '.tar.gz') 
+    ciop.publish(os.path.join(output_path, outputname + '.tar.gz'), metalink=True)   
+
+    os.chdir(ciop.tmp_dir)
+    palette_path = os.path.join(ciop.tmp_dir, 'palette.cpd')
+
+    with open(palette_path, 'w') as palette:
+        palette.write(ciop.getparam('palette'))
+        palette.close()
+    
+    output_base = os.path.join(output_path, outputname)
+
+    res = call('pconvert.sh -f png -b 3 ' + output_base + '.dim' + ' -c ' + palette_path + ' -o ' + output_path,
+               shell=True)
+    assert(res == 0)
+
+    res = call('pconvert.sh -f tif -b 3 ' + output_base + '.dim' + ' -c ' + palette_path + ' -o ' + output_path,
+               shell=True)
+    assert(res == 0)
+
+    os.rename(output_base + '.tif', output_base + '_rgb.tif')
+
+    res = call('pconvert.sh -f tif -b 3 ' + output_base + '.dim' + ' -o ' + output_path,
+               shell=True)
+    assert(res == 0)
+
+    ciop.publish(output_base + '.png', metalink=True)
+
+    ciop.publish(output_base + '_rgb.tif', metalink=True)
+
+    ciop.publish(output_base + '.tif', metalink=True)
+  
+    ciop.log('INFO', 'Generating image files') 
+        
+try:
+    main()
+except SystemExit as e:
+    if e.args[0]:
+        clean_exit(e.args[0])
+    raise
+else:
+    atexit.register(clean_exit, 0)
+
+
+
