@@ -6,10 +6,10 @@ Installation
 
 * Log on your Developer Cloud Sandbox host
 
-* Install the needed packages:
+* Install the needed package:
 
 ```bash
-sudo yum install -y esa-beam-4.11 ImageMagick
+sudo yum install -y beam-5.0
 ```
 
 * Run these commands in a shell:
@@ -18,13 +18,13 @@ sudo yum install -y esa-beam-4.11 ImageMagick
 cd
 git clone https://github.com/Terradue/dcs-hands-on.git
 cd dcs-hands-on
-mvn clean install -Dhands.on=-id- -P bash
+mvn clean install -D hands.on=-id- -P bash
 ```
 
 where *-id-* is the identifier of the Hands On you want to install. For example:
 
 ```
-mvn clean install -Dhands.on=1 -P bash
+mvn clean install -D hands.on=1 -P bash
 ```
 
 Available Hands On
