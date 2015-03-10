@@ -7,7 +7,7 @@
 	<packaging>rpm</packaging>
 	<name>dcs-hands-on-${hands.on}</name>
 	<description>Developer Cloud Sandbox Hands-On ${hands.on}</description>
-	<version>1.0.6</version>
+	<version>1.0.7</version>
 	
 	<scm>
 		<connection>scm:git:git@github.com:Terradue/dcs-handson.git</connection>

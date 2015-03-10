@@ -41,38 +41,44 @@ function cleanExit ()
 }
 trap cleanExit EXIT
 
-# retrieve the parameters value from workflow or job default value
-bandname="$( ciop-getparam bandname )"
-bitmask="$( ciop-getparam bitmask )"
-bbox="$( ciop-getparam bbox )"
-algorithm="$( ciop-getparam algorithm )"
-outputname="$( ciop-getparam outputname )"
+function get_data() {
+  local list
+  list="$1"
 
-# split the bounding value
-xmin=$( echo ${bbox} | cut -d "," -f 1 )
-ymin=$( echo ${bbox} | cut -d "," -f 2 )
-xmax=$( echo ${bbox} | cut -d "," -f 3 )
-ymax=$( echo ${bbox} | cut -d "," -f 4 )
-
-binning_file=${TMPDIR}/binning_request.xml
-
-# create a folder for the input products (results of node_expression)
-mkdir -p ${TMPDIR}/input
-
-# create a folder based on the outputname
-mkdir ${TMPDIR}/${outputname}
-
-while read list
-do
   prod=$( echo $list | ciop-copy -U -o ${TMPDIR}/input - )
-  ciop-log "DEBUG" "Retrieved `basename ${list}`" 
+  # checking if the copy was successfull
+  [ $? -eq 0 ] && [ -n "${prod}" ] || return ${ERR_INPUT_COPY}
+  
   cd $TMPDIR/input
   tar xfz `basename ${list}`
-  cd - &> /dev/null
-done
+  # let's check the return value
+  [ $? -eq 0 ] || return ${ERR_INPUT_TAR}
 
-# create the Binning graph
-cat > ${binning_file} << EOF
+  cd - &> /dev/null
+}
+
+function create_request_xml(){
+  local binning_file
+  local outputname
+
+  binning_file="$1"
+  outputname="$2"
+  
+  # retrieve the parameters value from workflow or job default value
+  bandname="$( ciop-getparam bandname )"
+  bitmask="$( ciop-getparam bitmask )"
+  bbox="$( ciop-getparam bbox )"
+  algorithm="$( ciop-getparam algorithm )"
+
+  # split the bounding value
+  xmin=$( echo ${bbox} | cut -d "," -f 1 )
+  ymin=$( echo ${bbox} | cut -d "," -f 2 )
+  xmax=$( echo ${bbox} | cut -d "," -f 3 )
+  ymax=$( echo ${bbox} | cut -d "," -f 4 )
+
+
+  # create the Binning graph
+  cat > ${binning_file} << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <graph id="someGraphId">
   <version>1.0</version>
@@ -99,48 +105,72 @@ cat > ${binning_file} << EOF
 </graph>
 EOF
 
-# invoke BEAM gpt with the created graph
-ciop-log "INFO" "Binning products"
-gpt.sh ${binning_file} 
-[ "$?" == "0" ] || exit ${ERR_BINNING}
+cat ${binning_file}
+}
 
-ciop-log "INFO" "Compressing and publishing binned DIMAP product"
-cd ${TMPDIR}/${outputname}
-tar -czf ${outputname}.tgz ${outputname}.*
-# stage-out the binned product
-cd - &> /dev/null
-ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.tgz
-ciop-log "INFO" "Generating image files"
 
-# stage-out the binned product
-ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.tgz
+function main(){
+  # main function
 
-ciop-log "INFO" "Generating image files"
+  outputname="$( ciop-getparam outputname )"
+  binning_file=${TMPDIR}/binning_request.xml
 
-cat > ${TMPDIR}/palette.cpd << EOF
-"$( ciop-getparam palette )"
+  # create a folder based on the outputname
+  mkdir ${TMPDIR}/${outputname}
+
+  # creates the request xml
+  create_request_xml "${binning_file}" "${outputname}"
+
+  # invoke BEAM gpt with the created graph
+  ciop-log "INFO" "Binning products"
+  gpt.sh ${binning_file} 
+  [ "$?" == "0" ] || exit ${ERR_BINNING}
+
+  ciop-log "INFO" "Compressing and publishing binned DIMAP product"
+  cd ${TMPDIR}/${outputname}
+  tar -czf ${outputname}.tgz ${outputname}.*
+  # stage-out the binned product
+  cd - &> /dev/null
+  ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.tgz
+  ciop-log "INFO" "Generating image files"
+
+  # stage-out the binned product
+  ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.tgz
+
+  ciop-log "INFO" "Generating image files"
+
+  cat > ${TMPDIR}/palette.cpd << EOF
+$( ciop-getparam palette )
 EOF
+  for entry in "${TMPDIR}/${outputname}"/* 
+  do
+      echo "$entry"
+  done
+  # png file
+  pconvert.sh -f png -b 3 ${TMPDIR}/${outputname}/${outputname}.dim -c ${TMPDIR}/palette.cpd -o ${TMPDIR}/${outputname} &> /dev/null
+  [ "$?" == "0" ] || exit $ERR_PCONVERT
+  ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.png &> /dev/null
 
-# png file
-pconvert.sh -f png -b 3 ${TMPDIR}/${outputname}/${outputname}.dim -c ${TMPDIR}/palette.cpd -o ${TMPDIR}/${outputname} &> /dev/null
-[ "$?" == "0" ] || exit $ERR_PCONVERT
-ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.png &> /dev/null
+  # rgb tif file
+  pconvert.sh -f tif -b 3 ${TMPDIR}/${outputname}/${outputname}.dim -c ${TMPDIR}/palette.cpd -o ${TMPDIR}/${outputname} &> /dev/null
+  [ "$?" == "0" ] || exit $ERR_PCONVERT
+  mv ${TMPDIR}/${outputname}/${outputname}.tif ${TMPDIR}/${outputname}/${outputname}_rgb.tif
+  ciop-publish -m ${TMPDIR}/${outputname}/${outputname}_rgb.tif &> /dev/null
 
-# rgb tif file
-pconvert.sh -f tif -b 3 ${TMPDIR}/${outputname}/${outputname}.dim -c ${TMPDIR}/palette.cpd -o ${TMPDIR}/${outputname} &> /dev/null
-[ "$?" == "0" ] || exit $ERR_PCONVERT
-mv ${TMPDIR}/${outputname}/${outputname}.tif ${TMPDIR}/${outputname}/${outputname}_rgb.tif
-ciop-publish -m ${TMPDIR}/${outputname}/${outputname}_rgb.tif &> /dev/null
+  # tif file
+  pconvert.sh -f tif -b 3 ${TMPDIR}/${outputname}/${outputname}.dim -o ${TMPDIR}/${outputname} &> /dev/null
+  [ "$?" == "0" ] || exit $ERR_PCONVERT
+  ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.tif &> /dev/null
 
-# tif file
-pconvert.sh -f tif -b 3 ${TMPDIR}/${outputname}/${outputname}.dim -o ${TMPDIR}/${outputname} &> /dev/null
-[ "$?" == "0" ] || exit $ERR_PCONVERT
-ciop-publish -m ${TMPDIR}/${outputname}/${outputname}.tif &> /dev/null
+}
 
 
+mkdir -p $TMPDIR/input
+mkdir -p $TMPDIR/output
 
-# clean-up for next list
-rm -fr ${TMPDIR}/input/*
+while read product
+do
+    get_data "${product}"
+done
 
-rm -fr ${TMPDIR}/${outputname}
-exit 0
+main || exit $?
