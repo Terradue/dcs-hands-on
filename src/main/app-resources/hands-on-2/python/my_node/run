@@ -15,7 +15,7 @@ ERR_NOEXPR = 3
 # add a trap to exit gracefully
 def clean_exit(exit_code):
     log_level = 'INFO'
-    if exit_code == SUCCESS:
+    if exit_code != SUCCESS:
         log_level = 'ERROR'  
    
     msg = { SUCCESS: 'Processing successfully concluded',
