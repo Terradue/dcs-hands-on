@@ -23,7 +23,7 @@ function cleanExit ()
     case ${retval} in
         ${SUCCESS})            msg="Processing successfully concluded";;
         ${BEAM_REQUEST_ERROR}) msg="Could not create beam request file";;
-        ${ERR_BEAM})           msg="Beam_expr failed to process product $( basename $product )";;
+        ${ERR_BEAM})           msg="Beam_expr failed to process product $( basename $retrieved )";;
         ${ERR_NOEXPR})         msg="No expression provided";;
         ${ERR_NOINPUT})        msg="No input provided";;
         *)                     msg="Unknown error";;
@@ -93,6 +93,7 @@ EOF
 }
 
 function main() {
+
     #defines the input
     local inputfile
     inputfile="$1"
@@ -113,7 +114,8 @@ function main() {
     # retrieve the MER_RR__1P product to the local temporary folder TMPDIR provided by the framework (this folder is only used by this process)
     # the ciop-copy utility will use one of online resource available in the metadata to copy it to the TMPDIR folder
     # the utility returns the local path so the variable $retrieved contains the local path to the MERIS product
-    retrieved=$( ciop-copy -o $TMPDIR "$inputfile" )
+    enclosure="$( opensearch-client ${inputfile} enclosure )"
+    retrieved=$( ciop-copy -o $TMPDIR "${enclosure}" )
 
     # check if the file was retrieved, if not exit with the error code $ERR_NOINPUT
     [ $? -eq 0 ] && [ -e "${retrieved}" ] || return ${ERR_NOINPUT}
