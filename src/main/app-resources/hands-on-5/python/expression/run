@@ -6,6 +6,7 @@ import os
 from lxml import etree
 from subprocess import call
 import tarfile
+import subprocess
 
 # import the ciop functions (e.g. copy, log)
 sys.path.append('/opt/anaconda/bin/')
@@ -55,7 +56,8 @@ def main():
         # retrieve the MER_RR__1P product to the local temporary folder TMPDIR provided by the framework (this folder is only used by this process)
         # the ciop.copy function will use one of online resource available in the metadata to copy it to the TMPDIR folder
         # the funtion returns the local path so the variable retrieved contains the local path to the MERIS product
-        retrieved = ciop.copy(inputfile, ciop.tmp_dir)
+        enclosure = subprocess.Popen("opensearch-client " +  inputfile + " enclosure",shell=True, stdout=subprocess.PIPE).stdout.read().rstrip()
+        retrieved = ciop.copy(enclosure, ciop.tmp_dir)
         outputname = os.path.basename(retrieved)
 
         ciop.log('INFO', 'Retrieved ' + os.path.basename(retrieved))
