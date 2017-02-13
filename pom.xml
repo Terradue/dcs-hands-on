@@ -208,7 +208,7 @@
 									</provides>
 									<requires>
 										<require>beam-5.0</require>
-										<require>miniconda-3.8.3</require>
+										<require>miniconda</require>
 									</requires>
 								</configuration>
 							</plugin>
