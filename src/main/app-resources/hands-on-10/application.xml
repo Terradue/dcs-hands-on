@@ -55,7 +55,7 @@ sample8=101.80430145795337</parameter>
     <node id="node_expression">       
       <job id="expression"></job>     
       <sources>
-        <source refid="cas:series">http://catalog.terradue.com/eo-samples/series/mer_rr__1p/description</source>
+        <source refid="cas:series">https://catalog.terradue.com/eo-samples/series/mer_rr__1p/description</source>
       </sources>
       <parameters>          
       </parameters>
