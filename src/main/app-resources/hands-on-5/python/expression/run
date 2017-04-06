@@ -59,7 +59,7 @@ def main():
         if inputfile[:4] == 'file':
             enclosure = inputfile
         else:
-            enclosure = subprocess.Popen("opensearch-client " +  inputfile + " enclosure",shell=True, stdout=subprocess.PIPE).stdout.read().rstrip()
+            enclosure = subprocess.Popen(['opensearch-client', inputfile, 'enclosure'],shell=True, stdout=subprocess.PIPE).stdout.read().rstrip()
         
         retrieved = ciop.copy(enclosure, ciop.tmp_dir)
         outputname = os.path.basename(retrieved)
